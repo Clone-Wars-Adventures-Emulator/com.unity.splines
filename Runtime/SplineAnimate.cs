@@ -107,6 +107,7 @@ namespace UnityEngine.Splines
 
         [SerializeField, Tooltip("The speed in meters/second that the GameObject animates along the spline at.")]
         float m_MaxSpeed = 10f;
+        float prevSpeed;
 
         [SerializeField, Tooltip("The easing mode used when the GameObject animates along the spline.\n" +
                                  "None - Apply no easing to the animation. The animation speed is linear.\n" +
@@ -421,6 +422,7 @@ namespace UnityEngine.Splines
         /// <param name="autoplay"> If true, the animation along the Spline will start over again. </param>
         public void Restart(bool autoplay)
         {
+            prevSpeed = m_MaxSpeed;
             if (IsNullOrEmptyContainer())
                 return;
 
@@ -457,6 +459,12 @@ namespace UnityEngine.Splines
                 return;
 
             var dt = Time.deltaTime;
+            if (prevSpeed != m_MaxSpeed)
+            {
+                m_ElapsedTime *= prevSpeed / m_MaxSpeed;
+                prevSpeed = m_MaxSpeed;
+            }
+
 #if UNITY_EDITOR
             if (!EditorApplication.isPlaying)
             {
@@ -544,9 +552,9 @@ namespace UnityEngine.Splines
             if (EditorApplication.isPlaying)
             {
 #endif
-                transform.position = position;
-                if (m_AlignmentMode != AlignmentMode.None)
-                    transform.rotation = rotation;
+            transform.position = position;
+            if (m_AlignmentMode != AlignmentMode.None)
+                transform.rotation = rotation;
 
 #if UNITY_EDITOR
             }
@@ -665,7 +673,7 @@ namespace UnityEngine.Splines
                 targetAxis = newValue;
             }
             // Do not allow configuring object's forward and up axes as opposite
-            else if ((int) newValue % 3 != (int) otherAxis % 3)
+            else if ((int)newValue % 3 != (int)otherAxis % 3)
                 targetAxis = newValue;
 
             return otherAxis;
